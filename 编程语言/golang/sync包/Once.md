@@ -4,25 +4,26 @@
 ## 原理
 ```
 type Once struct {
-    done uint32
-    m    Mutex
+	done atomic.Uint32
+	m    Mutex
 }
 
 func (o *Once) Do(f func()) {
-    // 思考题：为什么这里不用 cas 来判断？
-    if atomic.LoadUint32(&o.done) == 0 {
-        o.doSlow(f)
-    }
+    // 思考题：为什么这里不用 cas 来判断？(无法保证f执行完毕)
+    if o.done.Load() == 0 {
+		// Outlined slow-path to allow inlining of the fast-path.
+		o.doSlow(f)
+	}
 }
 
 func (o *Once) doSlow(f func()) {
     o.m.Lock()
     defer o.m.Unlock()
-    if o.done == 0 {
+    if o.done.Load() == 0 {
         // 思考题：为什么这里用 defer 来加计数？(个人理解需要等f执行完毕之后才加1)
-        defer atomic.StoreUint32(&o.done, 1)
-        f()
-    }
+		defer o.done.Store(1)
+		f()
+	}
 }
 ```
 
