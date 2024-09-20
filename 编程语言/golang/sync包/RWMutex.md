@@ -14,6 +14,6 @@ type RWMutex struct {
 
 writerSem: 写阻塞等待的信号量，最后一个读者释放锁时，会释放该信号量；  
 readerSem: 读阻塞的协程等待的信号量，持有写锁的协程释放锁后，会释放该信号量；  
-readerCount: 拿到锁的 readers 数量  
-readerWait: 正在写阻塞时的 readers 数量。  
+readerCount: 拿到锁的 readers 数量（个人理解：已持有读锁和在等待读锁信号量的协程数）  
+readerWait: 正在写阻塞时的 readers 数量（加写锁时已持有读锁的数量）。  
 
